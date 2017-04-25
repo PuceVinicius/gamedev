@@ -28,6 +28,7 @@ local bounce_sfx
 local function newObject ()
   local new_object = {}
   new_object.x = love.math.random()*W
+  
   if new_object.x < W/2 then
   	new_object.x = new_object.x + radius
   else
@@ -42,6 +43,10 @@ local function newObject ()
   local dir = love.math.random()*2*math.pi
   new_object.dir_x = math.cos(dir)
   new_object.dir_y = math.sin(dir)
+  new_object.red = love.math.random(255)
+  new_object.green = love.math.random(255)
+  new_object.blue = love.math.random(255)
+  
   return new_object
 end
 
@@ -60,6 +65,11 @@ end
 end
   object.x = object.x + OBJECT_SPEED*object.dir_x*dt
   object.y = object.y + OBJECT_SPEED*object.dir_y*dt
+  
+end
+
+local function handleCollisions(radius)
+	
 end
 
 --[[ Main game functions ]]--
@@ -72,12 +82,13 @@ end
 --  See https://love2d.org/wiki/love.graphics.getDimensions
 function love.load ()
   W, H = love.graphics.getDimensions()
-  MAX_OBJECTS = 500
+  MAX_OBJECTS = 10
   OBJECT_SPEED = 500
   radius = 19
   bounce_sfx = love.audio.newSource("bounce.wav", "stream")
   objects = {}
   for i=1,MAX_OBJECTS do
+  	
     table.insert(objects, newObject())
   end
   --bounce_sfx = nil
@@ -86,9 +97,13 @@ end
 --- Update the game's state, which in this case means properly moving each
 --  game object according to its moving direction and current position.
 function love.update (dt)
+	for i,object in ipairs(objects) do
+    	handleCollisions()
+  	end
   for i,object in ipairs(objects) do
     moveObject(object, dt)
   end
+  
 end
 
 --- Detects when the player presses a keyboard button. Closes the game if it
@@ -103,8 +118,11 @@ end
 --- Draw all game objects as simle white circles. We will improve on that.
 --  See https://love2d.org/wiki/love.graphics.circle
 function love.draw ()
+	
   for i,object in ipairs(objects) do
-    love.graphics.circle('fill', object.x, object.y, radius - 3, 16)
+   	love.graphics.setColor(object.red, object.green, object.blue)
+    love.graphics.circle('fill', object.x, object.y, radius, 16)
+    
   end
 end
 
