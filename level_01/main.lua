@@ -68,9 +68,24 @@ end
   
 end
 
-local function handleCollisions(radius)
-	
+
+function handleCollisions(objectI, objectJ)
+		hip = math.sqrt(((objectI.x - objectJ.x)*(objectI.x - objectJ.x)) + ((objectI.y - objectJ.y)*(objectI.y - objectJ.y)))
+		if hip < radius * 2 then
+			--objectI.x = objectI.x + hip - radius
+			--objectI.y = objectI.y + hip - radius
+			direcX = objectI.dir_x
+			direcY = objectI.dir_y
+			objectI.dir_x = objectJ.dir_x
+			objectI.dir_y = objectJ.dir_y
+			objectJ.dir_x = direcX
+			objectJ.dir_y = direcY
+			--objectI.x = math.max(radius, math.min(object.x, W-radius))
+			--objectI.y = math.max(radius, math.min(object.x, W-radius))
+			
+			end
 end
+
 
 --[[ Main game functions ]]--
 
@@ -82,9 +97,9 @@ end
 --  See https://love2d.org/wiki/love.graphics.getDimensions
 function love.load ()
   W, H = love.graphics.getDimensions()
-  MAX_OBJECTS = 10
-  OBJECT_SPEED = 500
-  radius = 19
+  MAX_OBJECTS = 25
+  OBJECT_SPEED = 100
+  radius = 15
   bounce_sfx = love.audio.newSource("bounce.wav", "stream")
   objects = {}
   for i=1,MAX_OBJECTS do
@@ -98,12 +113,13 @@ end
 --  game object according to its moving direction and current position.
 function love.update (dt)
 	for i,object in ipairs(objects) do
-    	handleCollisions()
-  	end
-  for i,object in ipairs(objects) do
     moveObject(object, dt)
   end
-  
+   	for i,objectI in ipairs(objects) do
+		for J=i+1, #objects do
+    		handleCollisions(objectI, objects[J])
+    	end
+  	end
 end
 
 --- Detects when the player presses a keyboard button. Closes the game if it
@@ -125,4 +141,3 @@ function love.draw ()
     
   end
 end
-
