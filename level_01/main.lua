@@ -4,7 +4,6 @@
 
 -- "local" variables mean that they belong only to this code module. More on
 -- that later.
-
 -- Window resolution
 local W, H
 
@@ -65,25 +64,46 @@ end
 end
   object.x = object.x + OBJECT_SPEED*object.dir_x*dt
   object.y = object.y + OBJECT_SPEED*object.dir_y*dt
-  
 end
 
 
 function handleCollisions(objectI, objectJ)
 		hip = math.sqrt(((objectI.x - objectJ.x)*(objectI.x - objectJ.x)) + ((objectI.y - objectJ.y)*(objectI.y - objectJ.y)))
 		if hip < radius * 2 then
-			--objectI.x = objectI.x + hip - radius
-			--objectI.y = objectI.y + hip - radius
+			if objectI.x > objectJ.x then
+				objectI.x = objectI.x + 2*radius - hip
+			else
+				objectI.x = objectI.x - 2*radius + hip
+			end
+			if objectI.y > objectJ.y then
+				objectI.y = objectI.y + 2*radius - hip
+			else
+				objectI.y = objectI.y - 2*radius + hip
+			end
+			objectI.y = objectI.y + 2*radius - hip
 			direcX = objectI.dir_x
 			direcY = objectI.dir_y
 			objectI.dir_x = objectJ.dir_x
 			objectI.dir_y = objectJ.dir_y
 			objectJ.dir_x = direcX
 			objectJ.dir_y = direcY
-			--objectI.x = math.max(radius, math.min(object.x, W-radius))
-			--objectI.y = math.max(radius, math.min(object.x, W-radius))
+			--objectI.x = objectJ.x + 2*(radius+1)*objectJ.dir_x
+			--objectI.y = objectJ.y + 2*(radius+1)*objectJ.dir_y
 			
 			end
+end
+
+function gravity(mouseX, mouseY, dt)
+  	for i,object in ipairs(objects) do
+  		OBJECT_SPEED = 10
+  		forceX, forceY = mouseX - object.x, mouseY - object.y
+  		distance = math.sqrt(forceX^2 + forceY^2)
+  		forceMAX = 10000 / distance
+  		object.dir_x = object.dir_x + forceMAX*forceX/distance*dt
+  		object.dir_y = object.dir_y + forceMAX*forceY/distance*dt
+  	
+  		--OBJECT_SPEED = OBJECT_SPEED*forceMAX/100
+  	end
 end
 
 
@@ -97,8 +117,8 @@ end
 --  See https://love2d.org/wiki/love.graphics.getDimensions
 function love.load ()
   W, H = love.graphics.getDimensions()
-  MAX_OBJECTS = 25
-  OBJECT_SPEED = 100
+  MAX_OBJECTS = 2
+  OBJECT_SPEED = 50
   radius = 15
   bounce_sfx = love.audio.newSource("bounce.wav", "stream")
   objects = {}
@@ -120,6 +140,10 @@ function love.update (dt)
     		handleCollisions(objectI, objects[J])
     	end
   	end
+  	if love.mouse.isDown(1) then
+  		local mouseX, mouseY = love.mouse.getPosition()
+ 		gravity(mouseX, mouseY, dt)
+ 	end
 end
 
 --- Detects when the player presses a keyboard button. Closes the game if it
