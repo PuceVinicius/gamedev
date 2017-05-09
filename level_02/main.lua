@@ -5,11 +5,13 @@ local WIDTH, HEIGHT = 20, 15
 
 local TILE_SIZE = 32
 
-local TILES = {
-  {115, 170, 114}, --grass
-  {114, 85, 49}, --dirt
-  {107, 110, 124} --cobblestone
-}
+local generalsound
+
+--local TILES = {
+--  {115, 170, 114}, --grass
+--  {114, 85, 49}, --dirt
+--  {107, 110, 124} --cobblestone
+--}
 
 local STATES = {
   PICK_UNIT = 1,
@@ -26,13 +28,13 @@ local DIRS = {
 
 local MAP_BASE = {
   -- Each cell has the tile type id, which are indexes on the TILES table
-  {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-  {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-  {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-  {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-  {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-  {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-  {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+  {1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1},
+  {1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1},
+  {1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1},
+  {1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1},
+  {1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1},
+  {1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1},
+  {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1},
   {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1},
   {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 1, 1, 1, 2, 2, 1, 1},
   {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 1, 1, 1, 1, 1, 1},
@@ -93,6 +95,7 @@ end
 
 function love.load ()
   -- Load map
+  generalsound = love.audio.newSource("assets/sfx/hit01_mp3.wav", "stream")
   map = {}
   for i=1,HEIGHT do
     map[i] = {}
@@ -179,11 +182,13 @@ function love.keypressed (key)
   if state == STATES.PICK_UNIT then
     -- Player moved cursor
     if dir then
+    	love.audio.play(generalsound)
       cursor[1] = math.max(1, math.min(cursor[1] + dir[1], HEIGHT))
       cursor[2] = math.max(1, math.min(cursor[2] + dir[2], WIDTH))
     -- Player picked a unit
     elseif key == 'return' and target_unit then
       if target_unit.side == 'player' then
+      	love.audio.play(generalsound)
         selected_unit = target_unit
         print('Picked unit ' .. name(selected_unit))
         state = STATES.MOVE_UNIT
@@ -192,13 +197,15 @@ function love.keypressed (key)
   elseif state == STATES.MOVE_UNIT then
     -- Player moved cursor
     if dir then
+    	love.audio.play(generalsound)
       cursor[1] = math.max(1, math.min(cursor[1] + dir[1], HEIGHT))
       cursor[2] = math.max(1, math.min(cursor[2] + dir[2], WIDTH))
     -- Player selected a tile to move to
     elseif key == 'return' then
       -- Target tile has a unit on it
       if target_unit then
-        error('Oh-oh, try another tile...')
+      	love.audio.play(generalsound)
+        error('dissapointed but not surprised...')
       -- Move unit
       else
         map[selected_unit.pos[1]][selected_unit.pos[2]].fg = false
@@ -211,15 +218,18 @@ function love.keypressed (key)
   elseif state == STATES.ATTACK_TARGET then
     -- Player changed attack direction
     if dir then
+    	love.audio.play(generalsound)
       cursor[1] = math.max(1, math.min(selected_unit.pos[1] + dir[1], HEIGHT))
       cursor[2] = math.max(1, math.min(selected_unit.pos[2] + dir[2], WIDTH))
     -- Attack target chosen
     elseif key == 'return' then
       if target_unit then
         if target_unit.side == 'cpu' then
+        	love.audio.play(generalsound)
           attack(selected_unit, target_unit)
         else
-          print("You can't attack your own unit!")
+        	love.audio.play(generalsound)
+          print("Beware, Ezio did not killed civilians!")
           return
         end
       else
@@ -235,14 +245,19 @@ end
 
 function love.draw ()
   local g = love.graphics
+  local img = love.graphics.newImage("assets/imgs/tutorial-tiles.png")
+  local quad
   -- Draw map
   for i=1,HEIGHT do
     for j=1,WIDTH do
       local target = map[i][j].fg
       g.push()
       g.translate((j-1)*TILE_SIZE, (i-1)*TILE_SIZE)
-      g.setColor(TILES[map[i][j].bg])
-      g.rectangle('fill', 0, 0, TILE_SIZE, TILE_SIZE)
+      --g.setColor(TILES[map[i][j].bg])
+      --g.rectangle('fill', 0, 0, TILE_SIZE, TILE_SIZE)
+      g.setColor(255,255,255)
+      quad = g.newQuad(MAP_BASE[i][j]*TILE_SIZE - TILE_SIZE, 0, TILE_SIZE, TILE_SIZE, img:getDimensions())
+      love.graphics.draw(img, quad, 0, 0)
       -- Draw units
       if target then
         if target.side == 'player' then
